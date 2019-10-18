@@ -7,6 +7,9 @@ export function objectType(object: any) {
   if (object === null) {
     return 'null'
   }
+  if (object instanceof Date) {
+    return 'date';
+  }
   if (Array.isArray(object)) {
     return 'array'
   }

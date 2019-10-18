@@ -297,6 +297,13 @@ export function diffValues(input: any, output: any, ptr: Pointer): Operation[] {
   return []
 }
 
+export function diffDates(input: Date, output: Date, ptr: Pointer): Operation[] {
+  if (JSON.stringify(input) != JSON.stringify(output)) {
+    return [{op: 'replace', path: ptr.toString(), value: output}]
+  }
+  return []
+}
+
 export function diffAny(input: any, output: any, ptr: Pointer, diff: Diff = diffAny): Operation[] {
   const input_type = objectType(input)
   const output_type = objectType(output)
@@ -305,6 +312,9 @@ export function diffAny(input: any, output: any, ptr: Pointer, diff: Diff = diff
   }
   if (input_type == 'object' && output_type == 'object') {
     return diffObjects(input, output, ptr, diff)
+  }
+  if (input_type == 'date' && output_type == 'date') {
+    return diffDates(input, output, ptr)
   }
   // only pairs of arrays and objects can go down a path to produce a smaller
   // diff; everything else must be wholesale replaced if inequal
