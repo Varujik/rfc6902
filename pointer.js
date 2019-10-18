@@ -37,67 +37,65 @@ function escape(token) {
 /**
 JSON Pointer representation
 */
-var Pointer = /** @class */ (function () {
-    function Pointer(tokens) {
-        if (tokens === void 0) { tokens = ['']; }
+class Pointer {
+    constructor(tokens = ['']) {
         this.tokens = tokens;
     }
     /**
     `path` *must* be a properly escaped string.
     */
-    Pointer.fromJSON = function (path) {
-        var tokens = path.split('/').map(unescape);
+    static fromJSON(path) {
+        const tokens = path.split('/').map(unescape);
         if (tokens[0] !== '')
-            throw new Error("Invalid JSON Pointer: " + path);
+            throw new Error(`Invalid JSON Pointer: ${path}`);
         return new Pointer(tokens);
-    };
-    Pointer.prototype.toString = function () {
+    }
+    toString() {
         return this.tokens.map(escape).join('/');
-    };
+    }
     /**
     Returns an object with 'parent', 'key', and 'value' properties.
     In the special case that this Pointer's path == "",
     this object will be {parent: null, key: '', value: object}.
     Otherwise, parent and key will have the property such that parent[key] == value.
     */
-    Pointer.prototype.evaluate = function (object) {
-        var parent = null;
-        var key = '';
-        var value = object;
-        for (var i = 1, l = this.tokens.length; i < l; i++) {
+    evaluate(object) {
+        let parent = null;
+        let key = '';
+        let value = object;
+        for (let i = 1, l = this.tokens.length; i < l; i++) {
             parent = value;
             key = this.tokens[i];
             // not sure if this the best way to handle non-existant paths...
             value = (parent || {})[key];
         }
-        return { parent: parent, key: key, value: value };
-    };
-    Pointer.prototype.get = function (object) {
+        return { parent, key, value };
+    }
+    get(object) {
         return this.evaluate(object).value;
-    };
-    Pointer.prototype.set = function (object, value) {
-        var cursor = object;
-        for (var i = 1, l = this.tokens.length - 1, token = this.tokens[i]; i < l; i++) {
+    }
+    set(object, value) {
+        let cursor = object;
+        for (let i = 1, l = this.tokens.length - 1, token = this.tokens[i]; i < l; i++) {
             // not sure if this the best way to handle non-existant paths...
             cursor = (cursor || {})[token];
         }
         if (cursor) {
             cursor[this.tokens[this.tokens.length - 1]] = value;
         }
-    };
-    Pointer.prototype.push = function (token) {
+    }
+    push(token) {
         // mutable
         this.tokens.push(token);
-    };
+    }
     /**
     `token` should be a String. It'll be coerced to one anyway.
   
     immutable (shallowly)
     */
-    Pointer.prototype.add = function (token) {
-        var tokens = this.tokens.concat(String(token));
+    add(token) {
+        const tokens = this.tokens.concat(String(token));
         return new Pointer(tokens);
-    };
-    return Pointer;
-}());
+    }
+}
 exports.Pointer = Pointer;

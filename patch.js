@@ -1,45 +1,26 @@
 "use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = function (d, b) {
-        extendStatics = Object.setPrototypeOf ||
-            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-        return extendStatics(d, b);
-    };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
-var pointer_1 = require("./pointer");
-var util_1 = require("./util");
-var equal_1 = require("./equal");
-var MissingError = /** @class */ (function (_super) {
-    __extends(MissingError, _super);
-    function MissingError(path) {
-        var _this = _super.call(this, "Value required at path: " + path) || this;
-        _this.path = path;
-        _this.name = 'MissingError';
-        return _this;
+const pointer_1 = require("./pointer");
+const util_1 = require("./util");
+const equal_1 = require("./equal");
+class MissingError extends Error {
+    constructor(path) {
+        super(`Value required at path: ${path}`);
+        this.path = path;
+        this.name = 'MissingError';
     }
-    return MissingError;
-}(Error));
+}
 exports.MissingError = MissingError;
-var TestError = /** @class */ (function (_super) {
-    __extends(TestError, _super);
-    function TestError(actual, expected) {
-        var _this = _super.call(this, "Test failed: " + actual + " != " + expected) || this;
-        _this.actual = actual;
-        _this.expected = expected;
-        _this.name = 'TestError';
-        _this.actual = actual;
-        _this.expected = expected;
-        return _this;
+class TestError extends Error {
+    constructor(actual, expected) {
+        super(`Test failed: ${actual} != ${expected}`);
+        this.actual = actual;
+        this.expected = expected;
+        this.name = 'TestError';
+        this.actual = actual;
+        this.expected = expected;
     }
-    return TestError;
-}(Error));
+}
 exports.TestError = TestError;
 function _add(object, key, value) {
     if (Array.isArray(object)) {
@@ -48,7 +29,7 @@ function _add(object, key, value) {
             object.push(value);
         }
         else {
-            var index = parseInt(key, 10);
+            const index = parseInt(key, 10);
             object.splice(index, 0, value);
         }
     }
@@ -59,7 +40,7 @@ function _add(object, key, value) {
 function _remove(object, key) {
     if (Array.isArray(object)) {
         // '-' syntax doesn't make sense when removing
-        var index = parseInt(key, 10);
+        const index = parseInt(key, 10);
         object.splice(index, 1);
     }
     else {
@@ -76,7 +57,7 @@ function _remove(object, key) {
 >     that member's value is replaced.
 */
 function add(object, operation) {
-    var endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
+    const endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
     // it's not exactly a "MissingError" in the same way that `remove` is -- more like a MissingParent, or something
     if (endpoint.parent === undefined) {
         return new MissingError(operation.path);
@@ -91,7 +72,7 @@ exports.add = add;
 */
 function remove(object, operation) {
     // endpoint has parent, key, and value properties
-    var endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
+    const endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
     if (endpoint.value === undefined) {
         return new MissingError(operation.path);
     }
@@ -113,7 +94,7 @@ exports.remove = remove;
 Even more simply, it's like the add operation with an existence check.
 */
 function replace(object, operation) {
-    var endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
+    const endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
     if (endpoint.parent === null) {
         return new MissingError(operation.path);
     }
@@ -146,11 +127,11 @@ exports.replace = replace;
 TODO: throw if the check described in the previous paragraph fails.
 */
 function move(object, operation) {
-    var from_endpoint = pointer_1.Pointer.fromJSON(operation.from).evaluate(object);
+    const from_endpoint = pointer_1.Pointer.fromJSON(operation.from).evaluate(object);
     if (from_endpoint.value === undefined) {
         return new MissingError(operation.from);
     }
-    var endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
+    const endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
     if (endpoint.parent === undefined) {
         return new MissingError(operation.path);
     }
@@ -173,11 +154,11 @@ exports.move = move;
 Alternatively, it's like 'move' without the 'remove'.
 */
 function copy(object, operation) {
-    var from_endpoint = pointer_1.Pointer.fromJSON(operation.from).evaluate(object);
+    const from_endpoint = pointer_1.Pointer.fromJSON(operation.from).evaluate(object);
     if (from_endpoint.value === undefined) {
         return new MissingError(operation.from);
     }
-    var endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
+    const endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
     if (endpoint.parent === undefined) {
         return new MissingError(operation.path);
     }
@@ -194,24 +175,21 @@ exports.copy = copy;
 > operation to be considered successful.
 */
 function test(object, operation) {
-    var endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
-    var result = equal_1.compare(endpoint.value, operation.value);
+    const endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
+    const result = equal_1.compare(endpoint.value, operation.value);
     if (!result) {
         return new TestError(endpoint.value, operation.value);
     }
     return null;
 }
 exports.test = test;
-var InvalidOperationError = /** @class */ (function (_super) {
-    __extends(InvalidOperationError, _super);
-    function InvalidOperationError(operation) {
-        var _this = _super.call(this, "Invalid operation: " + operation.op) || this;
-        _this.operation = operation;
-        _this.name = 'InvalidOperationError';
-        return _this;
+class InvalidOperationError extends Error {
+    constructor(operation) {
+        super(`Invalid operation: ${operation.op}`);
+        this.operation = operation;
+        this.name = 'InvalidOperationError';
     }
-    return InvalidOperationError;
-}(Error));
+}
 exports.InvalidOperationError = InvalidOperationError;
 /**
 Switch on `operation.op`, applying the corresponding patch function for each

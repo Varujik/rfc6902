@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var hasOwnProperty = Object.prototype.hasOwnProperty;
+const hasOwnProperty = Object.prototype.hasOwnProperty;
 /**
 Recursively copy a value.
 
@@ -18,18 +18,18 @@ function clone(source) {
     // x.constructor == Array is the fastest way to check if x is an Array
     if (source.constructor == Array) {
         // construction via imperative for-loop is faster than source.map(arrayVsObject)
-        var length_1 = source.length;
+        const length = source.length;
         // setting the Array length during construction is faster than just `[]` or `new Array()`
-        var arrayTarget = new Array(length_1);
-        for (var i = 0; i < length_1; i++) {
+        const arrayTarget = new Array(length);
+        for (let i = 0; i < length; i++) {
             arrayTarget[i] = clone(source[i]);
         }
         return arrayTarget;
     }
     // Object
-    var objectTarget = {};
+    const objectTarget = {};
     // declaring the variable (with const) inside the loop is faster
-    for (var key in source) {
+    for (const key in source) {
         // hasOwnProperty costs a bit of performance, but it's semantically necessary
         // using a global helper is MUCH faster than calling source.hasOwnProperty(key)
         if (hasOwnProperty.call(source, key)) {

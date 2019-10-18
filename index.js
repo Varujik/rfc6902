@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var pointer_1 = require("./pointer");
-var patch_1 = require("./patch");
-var diff_1 = require("./diff");
+const pointer_1 = require("./pointer");
+const patch_1 = require("./patch");
+const diff_1 = require("./diff");
 /**
 Apply a 'application/json-patch+json'-type patch to an object.
 
@@ -20,12 +20,12 @@ This method mutates the target object in-place.
          MissingError, InvalidOperationError, or TestError.
 */
 function applyPatch(object, patch) {
-    return patch.map(function (operation) { return patch_1.apply(object, operation); });
+    return patch.map(operation => patch_1.apply(object, operation));
 }
 exports.applyPatch = applyPatch;
 function wrapVoidableDiff(diff) {
     function wrappedDiff(input, output, ptr) {
-        var custom_patch = diff(input, output, ptr);
+        const custom_patch = diff(input, output, ptr);
         // ensure an array is always returned
         return Array.isArray(custom_patch) ? custom_patch : diff_1.diffAny(input, output, ptr, wrappedDiff);
     }
@@ -45,7 +45,7 @@ to fall back to default behaviour.
 Returns list of operations to perform on `input` to produce `output`.
 */
 function createPatch(input, output, diff) {
-    var ptr = new pointer_1.Pointer();
+    const ptr = new pointer_1.Pointer();
     // a new Pointer gets a default path of [''] if not specified
     return (diff ? wrapVoidableDiff(diff) : diff_1.diffAny)(input, output, ptr);
 }
@@ -55,9 +55,9 @@ Create a test operation based on `input`'s current evaluation of the JSON
 Pointer `path`; if such a pointer cannot be resolved, returns undefined.
 */
 function createTest(input, path) {
-    var endpoint = pointer_1.Pointer.fromJSON(path).evaluate(input);
+    const endpoint = pointer_1.Pointer.fromJSON(path).evaluate(input);
     if (endpoint !== undefined) {
-        return { op: 'test', path: path, value: endpoint.value };
+        return { op: 'test', path, value: endpoint.value };
     }
 }
 /**
@@ -71,13 +71,13 @@ side-effects (which is not a good idea anyway).
 Returns list of test operations.
 */
 function createTests(input, patch) {
-    var tests = new Array();
-    patch.filter(diff_1.isDestructive).forEach(function (operation) {
-        var pathTest = createTest(input, operation.path);
+    const tests = new Array();
+    patch.filter(diff_1.isDestructive).forEach(operation => {
+        const pathTest = createTest(input, operation.path);
         if (pathTest)
             tests.push(pathTest);
         if ('from' in operation) {
-            var fromTest = createTest(input, operation.from);
+            const fromTest = createTest(input, operation.from);
             if (fromTest)
                 tests.push(fromTest);
         }

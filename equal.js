@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var hasOwnProperty = Object.prototype.hasOwnProperty;
+const hasOwnProperty = Object.prototype.hasOwnProperty;
 function objectType(object) {
     if (object === undefined) {
         return 'undefined';
@@ -25,11 +25,11 @@ Evaluate `left === right`, treating `left` and `right` as ordered lists.
          determined recursivly, via `compare`.
 */
 function compareArrays(left, right) {
-    var length = left.length;
+    const length = left.length;
     if (length !== right.length) {
         return false;
     }
-    for (var i = 0; i < length; i++) {
+    for (let i = 0; i < length; i++) {
         if (!compare(left[i], right[i])) {
             return false;
         }
@@ -44,9 +44,9 @@ Evaluate `left === right`, treating `left` and `right` as property maps.
          possible. Equality is determined recursivly, via `compare`.
 */
 function compareObjects(left, right) {
-    var left_keys = Object.keys(left);
-    var right_keys = Object.keys(right);
-    var length = left_keys.length;
+    const left_keys = Object.keys(left);
+    const right_keys = Object.keys(right);
+    const length = left_keys.length;
     // quick exit if the number of keys don't match up
     if (length !== right_keys.length) {
         return false;
@@ -54,8 +54,8 @@ function compareObjects(left, right) {
     // we don't know for sure that Set(left_keys) is equal to Set(right_keys),
     // much less that their values in left and right are equal, but if right
     // contains each key in left, we know it can't have any additional keys
-    for (var i = 0; i < length; i++) {
-        var key = left_keys[i];
+    for (let i = 0; i < length; i++) {
+        const key = left_keys[i];
         if (!hasOwnProperty.call(right, key) || !compare(left[key], right[key])) {
             return false;
         }
@@ -89,8 +89,8 @@ function compare(left, right) {
     if (left === right) {
         return true;
     }
-    var left_type = objectType(left);
-    var right_type = objectType(right);
+    const left_type = objectType(left);
+    const right_type = objectType(right);
     // check arrays
     if (left_type == 'array' && right_type == 'array') {
         return compareArrays(left, right);
