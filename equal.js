@@ -1,7 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 const hasOwnProperty = Object.prototype.hasOwnProperty;
-function objectType(object) {
+export function objectType(object) {
     if (object === undefined) {
         return 'undefined';
     }
@@ -16,7 +14,6 @@ function objectType(object) {
     }
     return typeof object;
 }
-exports.objectType = objectType;
 /**
 Evaluate `left === right`, treating `left` and `right` as ordered lists.
 
@@ -84,7 +81,7 @@ function compareObjects(left, right) {
 > o  literals (false, true, and null): are considered equal if they are
 >    the same.
 */
-function compare(left, right) {
+export function compare(left, right) {
     // strict equality handles literals, numbers, and strings (a sufficient but not necessary cause)
     if (left === right) {
         return true;
@@ -102,4 +99,3 @@ function compare(left, right) {
     // mismatched arrays & objects, etc., are always inequal
     return false;
 }
-exports.compare = compare;

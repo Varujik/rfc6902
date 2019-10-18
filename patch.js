@@ -1,17 +1,14 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const pointer_1 = require("./pointer");
-const util_1 = require("./util");
-const equal_1 = require("./equal");
-class MissingError extends Error {
+import { Pointer } from './pointer';
+import { clone } from './util';
+import { compare } from './equal';
+export class MissingError extends Error {
     constructor(path) {
         super(`Value required at path: ${path}`);
         this.path = path;
         this.name = 'MissingError';
     }
 }
-exports.MissingError = MissingError;
-class TestError extends Error {
+export class TestError extends Error {
     constructor(actual, expected) {
         super(`Test failed: ${actual} != ${expected}`);
         this.actual = actual;
@@ -21,7 +18,6 @@ class TestError extends Error {
         this.expected = expected;
     }
 }
-exports.TestError = TestError;
 function _add(object, key, value) {
     if (Array.isArray(object)) {
         // `key` must be an index
@@ -56,23 +52,22 @@ function _remove(object, key) {
 >  o  If the target location specifies an object member that does exist,
 >     that member's value is replaced.
 */
-function add(object, operation) {
-    const endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
+export function add(object, operation) {
+    const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
     // it's not exactly a "MissingError" in the same way that `remove` is -- more like a MissingParent, or something
     if (endpoint.parent === undefined) {
         return new MissingError(operation.path);
     }
-    _add(endpoint.parent, endpoint.key, util_1.clone(operation.value));
+    _add(endpoint.parent, endpoint.key, clone(operation.value));
     return null;
 }
-exports.add = add;
 /**
 > The "remove" operation removes the value at the target location.
 > The target location MUST exist for the operation to be successful.
 */
-function remove(object, operation) {
+export function remove(object, operation) {
     // endpoint has parent, key, and value properties
-    const endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
+    const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
     if (endpoint.value === undefined) {
         return new MissingError(operation.path);
     }
@@ -80,7 +75,6 @@ function remove(object, operation) {
     _remove(endpoint.parent, endpoint.key);
     return null;
 }
-exports.remove = remove;
 /**
 > The "replace" operation replaces the value at the target location
 > with a new value.  The operation object MUST contain a "value" member
@@ -93,8 +87,8 @@ exports.remove = remove;
 
 Even more simply, it's like the add operation with an existence check.
 */
-function replace(object, operation) {
-    const endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
+export function replace(object, operation) {
+    const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
     if (endpoint.parent === null) {
         return new MissingError(operation.path);
     }
@@ -110,7 +104,6 @@ function replace(object, operation) {
     endpoint.parent[endpoint.key] = operation.value;
     return null;
 }
-exports.replace = replace;
 /**
 > The "move" operation removes the value at a specified location and
 > adds it to the target location.
@@ -126,12 +119,12 @@ exports.replace = replace;
 
 TODO: throw if the check described in the previous paragraph fails.
 */
-function move(object, operation) {
-    const from_endpoint = pointer_1.Pointer.fromJSON(operation.from).evaluate(object);
+export function move(object, operation) {
+    const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object);
     if (from_endpoint.value === undefined) {
         return new MissingError(operation.from);
     }
-    const endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
+    const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
     if (endpoint.parent === undefined) {
         return new MissingError(operation.path);
     }
@@ -139,7 +132,6 @@ function move(object, operation) {
     _add(endpoint.parent, endpoint.key, from_endpoint.value);
     return null;
 }
-exports.move = move;
 /**
 > The "copy" operation copies the value at a specified location to the
 > target location.
@@ -153,19 +145,18 @@ exports.move = move;
 
 Alternatively, it's like 'move' without the 'remove'.
 */
-function copy(object, operation) {
-    const from_endpoint = pointer_1.Pointer.fromJSON(operation.from).evaluate(object);
+export function copy(object, operation) {
+    const from_endpoint = Pointer.fromJSON(operation.from).evaluate(object);
     if (from_endpoint.value === undefined) {
         return new MissingError(operation.from);
     }
-    const endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
+    const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
     if (endpoint.parent === undefined) {
         return new MissingError(operation.path);
     }
-    _add(endpoint.parent, endpoint.key, util_1.clone(from_endpoint.value));
+    _add(endpoint.parent, endpoint.key, clone(from_endpoint.value));
     return null;
 }
-exports.copy = copy;
 /**
 > The "test" operation tests that a value at the target location is
 > equal to a specified value.
@@ -174,28 +165,26 @@ exports.copy = copy;
 > The target location MUST be equal to the "value" value for the
 > operation to be considered successful.
 */
-function test(object, operation) {
-    const endpoint = pointer_1.Pointer.fromJSON(operation.path).evaluate(object);
-    const result = equal_1.compare(endpoint.value, operation.value);
+export function test(object, operation) {
+    const endpoint = Pointer.fromJSON(operation.path).evaluate(object);
+    const result = compare(endpoint.value, operation.value);
     if (!result) {
         return new TestError(endpoint.value, operation.value);
     }
     return null;
 }
-exports.test = test;
-class InvalidOperationError extends Error {
+export class InvalidOperationError extends Error {
     constructor(operation) {
         super(`Invalid operation: ${operation.op}`);
         this.operation = operation;
         this.name = 'InvalidOperationError';
     }
 }
-exports.InvalidOperationError = InvalidOperationError;
 /**
 Switch on `operation.op`, applying the corresponding patch function for each
 case to `object`.
 */
-function apply(object, operation) {
+export function apply(object, operation) {
     // not sure why TypeScript can't infer typesafety of:
     //   {add, remove, replace, move, copy, test}[operation.op](object, operation)
     // (seems like a bug)
@@ -209,4 +198,3 @@ function apply(object, operation) {
     }
     return new InvalidOperationError(operation);
 }
-exports.apply = apply;

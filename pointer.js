@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 /**
 Unescape token part of a JSON Pointer string
 
@@ -37,7 +35,7 @@ function escape(token) {
 /**
 JSON Pointer representation
 */
-class Pointer {
+export class Pointer {
     constructor(tokens = ['']) {
         this.tokens = tokens;
     }
@@ -98,4 +96,3 @@ class Pointer {
         return new Pointer(tokens);
     }
 }
-exports.Pointer = Pointer;

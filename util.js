@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 /**
 Recursively copy a value.
@@ -8,7 +6,7 @@ Recursively copy a value.
 @returns copy of source where every Array and Object have been recursively
          reconstructed from their constituent elements
 */
-function clone(source) {
+export function clone(source) {
     // loose-equality checking for null is faster than strict checking for each of null/undefined/true/false
     // checking null first, then calling typeof, is faster than vice-versa
     if (source == null || typeof source != 'object') {
@@ -38,4 +36,3 @@ function clone(source) {
     }
     return objectTarget;
 }
-exports.clone = clone;

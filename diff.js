@@ -1,11 +1,8 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const equal_1 = require("./equal");
+import { compare, objectType } from './equal';
 const hasOwnProperty = Object.prototype.hasOwnProperty;
-function isDestructive({ op }) {
+export function isDestructive({ op }) {
     return op === 'remove' || op === 'replace' || op === 'copy' || op === 'move';
 }
-exports.isDestructive = isDestructive;
 /**
 List the keys in `minuend` that are not in `subtrahend`.
 
@@ -17,7 +14,7 @@ semantics, where JSON object serialization drops keys with undefined values.
 @param subtrahend Object of comparison
 @returns Array of keys that are in `minuend` but not in `subtrahend`.
 */
-function subtract(minuend, subtrahend) {
+export function subtract(minuend, subtrahend) {
     // initialize empty object; we only care about the keys, the values can be anything
     const obj = {};
     // build up obj with all the properties of minuend
@@ -36,7 +33,6 @@ function subtract(minuend, subtrahend) {
     // finally, extract whatever keys remain in obj
     return Object.keys(obj);
 }
-exports.subtract = subtract;
 /**
 List the keys that shared by all `objects`.
 
@@ -45,7 +41,7 @@ The semantics of what constitutes a "key" is described in {@link subtract}.
 @param objects Array of objects to compare
 @returns Array of keys that are in ("own-properties" of) every object in `objects`.
 */
-function intersection(objects) {
+export function intersection(objects) {
     const length = objects.length;
     // prepare empty counter to keep track of how many objects each key occurred in
     const counter = {};
@@ -67,7 +63,6 @@ function intersection(objects) {
     // finally, extract whatever keys remain in the counter
     return Object.keys(counter);
 }
-exports.intersection = intersection;
 function isArrayAdd(array_operation) {
     return array_operation.op === 'add';
 }
@@ -109,7 +104,7 @@ resulting in an array of 'remove' operations.
 
 @returns A list of add/remove/replace operations.
 */
-function diffArrays(input, output, ptr, diff = diffAny) {
+export function diffArrays(input, output, ptr, diff = diffAny) {
     // set up cost matrix (very simple initialization: just a map)
     const memo = {
         '0,0': { operations: [], cost: 0 },
@@ -129,7 +124,7 @@ function diffArrays(input, output, ptr, diff = diffAny) {
         const memo_key = `${i},${j}`;
         let memoized = memo[memo_key];
         if (memoized === undefined) {
-            if (i > 0 && j > 0 && equal_1.compare(input[i - 1], output[j - 1])) {
+            if (i > 0 && j > 0 && compare(input[i - 1], output[j - 1])) {
                 // equal (no operations => no cost)
                 memoized = dist(i - 1, j - 1);
             }
@@ -213,8 +208,7 @@ function diffArrays(input, output, ptr, diff = diffAny) {
     }, [[], 0]);
     return padded_operations;
 }
-exports.diffArrays = diffArrays;
-function diffObjects(input, output, ptr, diff = diffAny) {
+export function diffObjects(input, output, ptr, diff = diffAny) {
     // if a key is in input but not output -> remove it
     const operations = [];
     subtract(input, output).forEach(key => {
@@ -230,24 +224,21 @@ function diffObjects(input, output, ptr, diff = diffAny) {
     });
     return operations;
 }
-exports.diffObjects = diffObjects;
-function diffValues(input, output, ptr) {
-    if (!equal_1.compare(input, output)) {
+export function diffValues(input, output, ptr) {
+    if (!compare(input, output)) {
         return [{ op: 'replace', path: ptr.toString(), value: output }];
     }
     return [];
 }
-exports.diffValues = diffValues;
-function diffDates(input, output, ptr) {
+export function diffDates(input, output, ptr) {
     if (JSON.stringify(input) != JSON.stringify(output)) {
         return [{ op: 'replace', path: ptr.toString(), value: output }];
     }
     return [];
 }
-exports.diffDates = diffDates;
-function diffAny(input, output, ptr, diff = diffAny) {
-    const input_type = equal_1.objectType(input);
-    const output_type = equal_1.objectType(output);
+export function diffAny(input, output, ptr, diff = diffAny) {
+    const input_type = objectType(input);
+    const output_type = objectType(output);
     if (input_type == 'array' && output_type == 'array') {
         return diffArrays(input, output, ptr, diff);
     }
@@ -261,4 +252,3 @@ function diffAny(input, output, ptr, diff = diffAny) {
     // diff; everything else must be wholesale replaced if inequal
     return diffValues(input, output, ptr);
 }
-exports.diffAny = diffAny;

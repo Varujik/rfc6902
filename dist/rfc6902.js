@@ -150,6 +150,9 @@
       if (object === null) {
           return 'null';
       }
+      if (object instanceof Date) {
+          return 'date';
+      }
       if (Array.isArray(object)) {
           return 'array';
       }
@@ -670,6 +673,12 @@
       }
       return [];
   }
+  function diffDates(input, output, ptr) {
+      if (JSON.stringify(input) != JSON.stringify(output)) {
+          return [{ op: 'replace', path: ptr.toString(), value: output }];
+      }
+      return [];
+  }
   function diffAny(input, output, ptr, diff = diffAny) {
       const input_type = objectType(input);
       const output_type = objectType(output);
@@ -678,6 +687,9 @@
       }
       if (input_type == 'object' && output_type == 'object') {
           return diffObjects(input, output, ptr, diff);
+      }
+      if (input_type == 'date' && output_type == 'date') {
+          return diffDates(input, output, ptr);
       }
       // only pairs of arrays and objects can go down a path to produce a smaller
       // diff; everything else must be wholesale replaced if inequal

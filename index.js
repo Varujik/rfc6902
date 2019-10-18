@@ -1,8 +1,6 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const pointer_1 = require("./pointer");
-const patch_1 = require("./patch");
-const diff_1 = require("./diff");
+import { Pointer } from './pointer';
+import { apply } from './patch';
+import { isDestructive, diffAny } from './diff';
 /**
 Apply a 'application/json-patch+json'-type patch to an object.
 
@@ -19,15 +17,14 @@ This method mutates the target object in-place.
          otherwise, the result will be an instance of one of the Error classes:
          MissingError, InvalidOperationError, or TestError.
 */
-function applyPatch(object, patch) {
-    return patch.map(operation => patch_1.apply(object, operation));
+export function applyPatch(object, patch) {
+    return patch.map(operation => apply(object, operation));
 }
-exports.applyPatch = applyPatch;
 function wrapVoidableDiff(diff) {
     function wrappedDiff(input, output, ptr) {
         const custom_patch = diff(input, output, ptr);
         // ensure an array is always returned
-        return Array.isArray(custom_patch) ? custom_patch : diff_1.diffAny(input, output, ptr, wrappedDiff);
+        return Array.isArray(custom_patch) ? custom_patch : diffAny(input, output, ptr, wrappedDiff);
     }
     return wrappedDiff;
 }
@@ -44,18 +41,17 @@ to fall back to default behaviour.
 
 Returns list of operations to perform on `input` to produce `output`.
 */
-function createPatch(input, output, diff) {
-    const ptr = new pointer_1.Pointer();
+export function createPatch(input, output, diff) {
+    const ptr = new Pointer();
     // a new Pointer gets a default path of [''] if not specified
-    return (diff ? wrapVoidableDiff(diff) : diff_1.diffAny)(input, output, ptr);
+    return (diff ? wrapVoidableDiff(diff) : diffAny)(input, output, ptr);
 }
-exports.createPatch = createPatch;
 /**
 Create a test operation based on `input`'s current evaluation of the JSON
 Pointer `path`; if such a pointer cannot be resolved, returns undefined.
 */
 function createTest(input, path) {
-    const endpoint = pointer_1.Pointer.fromJSON(path).evaluate(input);
+    const endpoint = Pointer.fromJSON(path).evaluate(input);
     if (endpoint !== undefined) {
         return { op: 'test', path, value: endpoint.value };
     }
@@ -70,9 +66,9 @@ side-effects (which is not a good idea anyway).
 
 Returns list of test operations.
 */
-function createTests(input, patch) {
+export function createTests(input, patch) {
     const tests = new Array();
-    patch.filter(diff_1.isDestructive).forEach(operation => {
+    patch.filter(isDestructive).forEach(operation => {
         const pathTest = createTest(input, operation.path);
         if (pathTest)
             tests.push(pathTest);
@@ -84,4 +80,3 @@ function createTests(input, patch) {
     });
     return tests;
 }
-exports.createTests = createTests;
